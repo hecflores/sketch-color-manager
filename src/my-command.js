@@ -7,15 +7,19 @@ const webviewIdentifier = 'sketch-color-manager.webview'
 export default function () {
   const options = {
     identifier: webviewIdentifier,
-    width: 500,
-    height: 300,
-    show: false
+    width: 800,
+    height: 800,
+    show: false,
+    resizable:true,
+    movable:true,
+    alwaysOnTop:true
   }
 
   const browserWindow = new BrowserWindow(options)
-
+  var opened = false
   // only show the window when the page has loaded to avoid a white flash
   browserWindow.once('ready-to-show', () => {
+    opened = true
     browserWindow.show()
   })
   
@@ -25,7 +29,11 @@ export default function () {
   
 
   const webContents = browserWindow.webContents
-
+  
+  var isCanceled = false;
+  browserWindow.on("closed", () => {
+    opened = false;
+  });
   // print a message when the page loads
   webContents.on('did-finish-load', () => {
     UI.message('UI loaded 8!')
@@ -42,10 +50,10 @@ export default function () {
         if(typeof globalColors[globalType][globalId] == "undefined"){
           numberOfComponents += 1
           changed = true
-          globalColors.fills[globalType][globalId] = {styles:[]};
+          globalColors[globalType][globalId] = {styles:[]};
         }
 
-        globalColors.fills[globalType][globalId].styles.push({
+        globalColors[globalType][globalId].styles.push({
           displayName: type +" | "+name+" | "+typeDisplayName,
           type:type,
           id:id,
@@ -97,6 +105,11 @@ export default function () {
       var numberOfComponents = 0
       var changed = false
       function processLayer(layer){
+          if(!opened && !isCanceled){
+            isCanceled = true;
+            UI.message("Canceled... \r\nFound "+Object.keys(globalColors).length + " unique colors in "+numberOfComponents+" components from "+numberOfLayersReviewed+" layers")
+            return;
+          }
           stackCount += 1
           numberOfLayersReviewed += 1
           consumeStyle("LayerStyle", layer.id, layer.name, layer.style)
