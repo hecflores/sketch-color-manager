@@ -26,3 +26,14 @@ input, textarea {
   -webkit-user-select: auto;
   user-select: auto;
 }
+
+
+.color-icon{
+  display:inline-block;
+  width:30px;
+  height:30px;
+  border-radius: 30px;
+}
+.color-found-header{
+  float:left;
+}

@@ -9,6 +9,21 @@ document.getElementById('button').addEventListener('click', () => {
 })
 
 // call the wevbiew from the plugin
-window.setRandomNumber = (randomNumber) => {
-  document.getElementById('answer').innerHTML = 'Random number from the plugin: ' + randomNumber
+window.setContent = (content) => {
+
+  var html = "";
+  for(var color in content){
+    html+= "<div class='color-found'>"+
+           "    <div class='color-found-header'>"+
+           "         <div class='color-icon' style='background:"+color+"'></div>"+
+           "    </div>"+
+           "    <div class='color-found-body'>"
+    content[color].styles.forEach(function(style){
+        htm+="     <div class='color-found-body-item'>"+style.displayName+"</div>"
+    });
+    html+="</div></div>"
+  }
+  
+
+  document.getElementById('answer').innerHTML = html
 }
