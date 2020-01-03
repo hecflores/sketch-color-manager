@@ -11,20 +11,27 @@ document.getElementById('button').addEventListener('click', () => {
 // call the wevbiew from the plugin
 window.setContent = (content) => {
 
-  var html = "";
-  for(var color in content){
-    html+= "<div class='color-found'>"+
-           "    <div class='color-found-header'>"+
-           "         <div class='color-icon' style='background:"+color+"'/>"+
-           "    </div>"+
-           "    <div class='color-found-body' >" + 
-           "         <div class='color-found-body-header'>Found "+content[color].styles.length+" items</div>"
-    content[color].styles.forEach(function(style){
-        html +="     <div class='color-found-body-item'>"+style.displayName+"</div>"
-    });
-    html+="</div> </div>"
+  function generateColorHtml(items){
+    var html = "";
+    for(var color in items){
+      html+= "<div class='color-found'>"+
+             "    <div class='color-found-header'>"+
+             "         <div class='color-icon' style='background:"+color+"'></div>"+
+             "    </div>"+
+             "    <div class='color-found-body' >" + 
+             "         <div class='color-found-body-header'>Found "+items[color].styles.length+" items</div>"
+             items[color].styles.forEach(function(style){
+          html +="     <div class='color-found-body-item'>"+style.displayName+"</div>"
+      });
+      html+="</div> </div>"
+    }
+    return html
   }
   
+  
 
-  document.getElementById('answer').innerHTML = html
+  document.getElementById('fills').innerHTML = "<div>"+generateColorHtml(content.fills)+"</div>"
+  document.getElementById('borders').innerHTML = "<div>"+generateColorHtml(content.borderColors)+"</div>"
+  document.getElementById('fontSizes').innerHTML = "<div>"+generateColorHtml(content.fontSizes)+"</div>"
+  document.getElementById('borderThicknesses').innerHTML = "<div>"+generateColorHtml(content.borderThickness)+"</div>"
 }

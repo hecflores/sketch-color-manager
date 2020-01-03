@@ -11,9 +11,18 @@
   <div>
     <button id="button">Get a random number</button>
   </div>
-  <div id="answer"></div>
+  <div class="style-finds">
+    <div class="style-find" id="fills"></div>
+    <div class="style-find" id="borders"></div>
+    <div class="style-find" id="borderThicknesses"></div>
+    <div class="style-find" id="fontSizes"></div>
+    <div class="style-find" id="fontFamilies"></div>
+  </div>
+
 
   <!-- notice the "../resources_" here. It's because webview.js will be compiled in a different folder with the prefix. -->
+  <script src="../resources/webview.js"></script>
   <script src="../resources_webview.js"></script>
+  <script src="../resources/mock.js"></script>
 </body>
 </html>
