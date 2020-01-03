@@ -29,39 +29,56 @@ input, textarea {
   user-select: auto;
 }
 
-.style-finds{
+.style-finds {
   display:flex;
+  white-space: nowrap;
 }
-.color-found{
-  display:block;
-  margin-top:10px;
-  margin-bottom:10px;
-  margin-left:10px;
-  margin-right:10px;
+.style-finds .style-header{
+  padding-top:10px;
+  padding-bottom:10px;
+  padding-left:10px;
+  padding-right:10px;
+  font-weight:bold;
+  letter-spacing:1px;
+  border-bottom:1px solid #eeeeee;
 }
-.color-icon{
-  display:block;
+.item-found{
+  cursor:pointer;
+  display:flex;
+  padding-top:10px;
+  padding-bottom:10px;
+  padding-left:10px;
+  padding-right:10px;
+  font-size:13px;
+}
+.item-details{
   width:20px;
   height:20px;
   border-radius: 20px;
 }
-.color-found-header{
-  float:left;
+.item-found-header{
   height:20px;
   padding-right:10px;
 }
-.color-found-body{
+.item-found:hover {
+    background:#eeeeee;
+}
+.item-found-body{
   margin: auto;
   font-size:13px;
   padding-left:10px;
   height:20px;
-  width:100%;
 }
-.color-found-body > .color-found-body-header{
+.item-found-body > .item-found-body-header{
     transform:translate(0%, -50%);
     position:relative;
+    display:inline-block;
     top:50%;
 }
-.color-found-body > .color-found-body-item{
+.item-found-body > .item-found-body-item{
   display:none;
+}
+.item-found[render-type='color'] .item-details{
+  color:transparent;
+  font-size:1px;
 }
