@@ -3,6 +3,7 @@ import { getWebview } from 'sketch-module-web-view/remote'
 import UI from 'sketch/ui'
 import sketch from 'sketch'
 const webviewIdentifier = 'sketch-color-manager.webview'
+var fiber = require('sketch/async').createFiber()
 
 export default function () {
   const options = {
@@ -20,6 +21,7 @@ export default function () {
   // only show the window when the page has loaded to avoid a white flash
   browserWindow.once('ready-to-show', () => {
     opened = true
+    isCanceled = false
     browserWindow.show()
   })
   
@@ -36,7 +38,7 @@ export default function () {
   });
   // print a message when the page loads
   webContents.on('did-finish-load', () => {
-    UI.message('UI loaded 8!')
+    UI.message('UI loaded 10!')
     loadContent =function(){
       
       var styleConsumers = [
@@ -44,10 +46,10 @@ export default function () {
           name: "fills",
           type:"color",
           displayName: "Fills",
-          consume: (type, id, name, style) => {
+          consume: (consumer, type, id, name, style) => {
             var fills = style.fills ? style.fills : []
             fills.filter(fill => fill.fillType === "Color").forEach((fill, index) => {
-              addItem(this.displayName, fill.color, this.displayName, type, name, id, index)
+              addItem(consumer.name, fill.color, consumer.displayName, type, name, id, index)
             })
           }
         },
@@ -55,10 +57,10 @@ export default function () {
           name: "borderColors",
           type:"color",
           displayName: "Border Colors",
-          consume: (type, id, name, style) => {
+          consume: (consumer, type, id, name, style) => {
             var fills = style.fills ? style.fills : []
             fills.filter(fill => fill.fillType === "Color").forEach((fill, index) => {
-              addItem(this.displayName, fill.color, this.displayName, type, name, id, index)
+              addItem(consumer.name, fill.color, consumer.displayName, type, name, id, index)
             })
           }
         },
@@ -66,10 +68,10 @@ export default function () {
           name: "borderThickness",
           type:"text",
           displayName: "Border Thickness",
-          consume: (type, id, name, style) => {
+          consume: (consumer, type, id, name, style) => {
             var fills = style.fills ? style.fills : []
             fills.filter(fill => fill.fillType === "Color").forEach((fill, index) => {
-              addItem(this.displayName, fill.color, this.displayName, type, name, id, index)
+              addItem(consumer.name , fill.color, consumer.displayName, type, name, id, index)
             })
           }
         },
@@ -77,9 +79,9 @@ export default function () {
           name: "fontSize",
           type:"text",
           displayName: "Font Size",
-          consume: (type, id, name, style) => {
+          consume: (consumer, type, id, name, style) => {
             if(style.fontSize){
-              addItem(this.displayName, style.fontSize, this.displayName, type, name, id, null)
+              addItem(consumer.name, style.fontSize, consumer.displayName, type, name, id, null)
             }    
           }
         },
@@ -87,9 +89,9 @@ export default function () {
           name: "textColor",
           type:"color",
           displayName: "Text Color",
-          consume: (type, id, name, style) => {
+          consume: (consumer, type, id, name, style) => {
             if(style.textColor){
-              addItem(this.displayName, style.textColor, this.displayName, type, name, id, null)
+              addItem(consumer.name, style.textColor, consumer.displayName, type, name, id, null)
             }    
           }
         }
@@ -104,7 +106,7 @@ export default function () {
       styleConsumers.forEach(consumer => {
         // Add new item group
         if(typeof itemGroups[consumer.name] == "undefined"){
-          itemGroups[name] = {
+          itemGroups[consumer.name] = {
             results:{},
             displayName: consumer.displayName,
             type:consumer.type
@@ -139,7 +141,7 @@ export default function () {
       function consumeStyle(type, id, name, style){
 
         styleConsumers.forEach(consumer => {
-          consumer.consume(type, id, name, style)
+          consumer.consume(consumer, type, id, name, style)
         })
         
       }
@@ -168,8 +170,12 @@ export default function () {
           if(!opened && !isCanceled){
             isCanceled = true;
             UI.message("Canceled... \r\nFound "+Object.keys(itemGroups).length + " unique colors in "+numberOfComponents+" components from "+numberOfLayersReviewed+" layers")
+          }
+
+          if(isCanceled){
             return;
           }
+
           stackCount += 1
           numberOfLayersReviewed += 1
           consumeStyle("LayerStyle", layer.id, layer.name, layer.style)
@@ -189,9 +195,13 @@ export default function () {
             }
             stackCount -= 1
 
-            if(stackCount == 0){
-              UI.alert("Done","Done. \r\nFound "+Object.keys(itemGroups).length + " unique colors in "+numberOfComponents+" components from "+numberOfLayersReviewed+" layers")
+            if(stackCount == 0 ){
+              if(!isCanceled){
+                UI.alert("Done","Done. \r\nFound "+Object.keys(itemGroups).length + " unique colors in "+numberOfComponents+" components from "+numberOfLayersReviewed+" layers")
+              }
+              fiber.cleanup();  
             }
+            
           }, 1)
         }
         

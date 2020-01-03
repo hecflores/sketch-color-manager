@@ -58,6 +58,8 @@ window.setContent = (content) => {
     else{
       throw "Unknown content type "+content[contentKey].type
     }
+    finalHtml+="</div>"
+    finalHtml+="</div>"
   }
   document.getElementById('findings').innerHTML = "<div>"+finalHtml+"</div>"
 }
