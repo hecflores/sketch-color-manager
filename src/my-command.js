@@ -38,64 +38,124 @@ export default function () {
   webContents.on('did-finish-load', () => {
     UI.message('UI loaded 8!')
     loadContent =function(){
-      var sketch = require('sketch');
-
-      var colorStyles = [];
-      var globalColors = {}
-      var document = sketch.getSelectedDocument()
-      function addItem(globalType, globalId, typeDisplayName, type, name, id, subId){
-        if(typeof globalColors[globalType] == "undefined"){
-          globalColors[globalType] = {}
+      
+      var styleConsumers = [
+        {
+          name: "fills",
+          type:"color",
+          displayName: "Fills",
+          consume: (type, id, name, style) => {
+            var fills = style.fills ? style.fills : []
+            fills.filter(fill => fill.fillType === "Color").forEach((fill, index) => {
+              addItem(this.displayName, fill.color, this.displayName, type, name, id, index)
+            })
+          }
+        },
+        {
+          name: "borderColors",
+          type:"color",
+          displayName: "Border Colors",
+          consume: (type, id, name, style) => {
+            var fills = style.fills ? style.fills : []
+            fills.filter(fill => fill.fillType === "Color").forEach((fill, index) => {
+              addItem(this.displayName, fill.color, this.displayName, type, name, id, index)
+            })
+          }
+        },
+        {
+          name: "borderThickness",
+          type:"text",
+          displayName: "Border Thickness",
+          consume: (type, id, name, style) => {
+            var fills = style.fills ? style.fills : []
+            fills.filter(fill => fill.fillType === "Color").forEach((fill, index) => {
+              addItem(this.displayName, fill.color, this.displayName, type, name, id, index)
+            })
+          }
+        },
+        {
+          name: "fontSize",
+          type:"text",
+          displayName: "Font Size",
+          consume: (type, id, name, style) => {
+            if(style.fontSize){
+              addItem(this.displayName, style.fontSize, this.displayName, type, name, id, null)
+            }    
+          }
+        },
+        {
+          name: "textColor",
+          type:"color",
+          displayName: "Text Color",
+          consume: (type, id, name, style) => {
+            if(style.textColor){
+              addItem(this.displayName, style.textColor, this.displayName, type, name, id, null)
+            }    
+          }
         }
-        if(typeof globalColors[globalType][globalId] == "undefined"){
+      ]
+
+
+      var sketch = require('sketch');
+      var document = sketch.getSelectedDocument()
+      var itemGroups = {}
+
+      // Add Consumers as item groups
+      styleConsumers.forEach(consumer => {
+        // Add new item group
+        if(typeof itemGroups[consumer.name] == "undefined"){
+          itemGroups[name] = {
+            results:{},
+            displayName: consumer.displayName,
+            type:consumer.type
+          }
+        }
+      })
+
+      function addItem(itemGroup, itemId, typeDisplayName, type, name, id, subId){
+
+        // Add new item group
+        if(typeof itemGroups[itemGroup] == "undefined"){
+          throw "Unknown item group "+itemGroup
+        }
+
+        // Add new item
+        if(typeof itemGroups[itemGroup].results[itemId] == "undefined"){
           numberOfComponents += 1
           changed = true
-          globalColors[globalType][globalId] = {styles:[]};
+          itemGroups[itemGroup].results[itemId] = {styles:[]};
         }
 
-        globalColors[globalType][globalId].styles.push({
+        // Add new item detail
+        itemGroups[itemGroup].results[itemId].styles.push({
           displayName: type +" | "+name+" | "+typeDisplayName,
           type:type,
           id:id,
           subId: subId
         })
       }
+
+      
       function consumeStyle(type, id, name, style){
-        var fills = style.fills ? style.fills : []
-        fills.forEach(function(fill, index){
 
-          if(fill.fillType === "Color"){
-            addItem("fills", fill.color, "Fill", type, name, id, index)
-          }
-          
+        styleConsumers.forEach(consumer => {
+          consumer.consume(type, id, name, style)
         })
-
-        var borders = style.borders ? style.borders : []
-        borders.forEach(function(border, index){
-          addItem("borderThickness", border.thickness, "Border Thickness", type, name, id, index)
-          if(border.fillType === "Color"){
-            addItem("borderColors", border.color, "Border Color", type, name, id, index)
-          }
-        })
-
-        if(style.fontSize){
-          addItem("fontSize", style.fontSize, "Font Size", type, name, id, null)
-        }
-        if(style.textColor){
-          addItem("textColor", style.textColor, "Text Color", type, name, id, null)
-        }
-        
-
         
       }
 
+      // Add all Shared Layer Styles
       document.sharedLayerStyles.forEach(function(style){
         consumeStyle("SharedLayerStyle", style.id, style.name, style.style)
       })
+
+      // Add all Shared Text Styles
       document.sharedTextStyles.forEach(function(style){
         consumeStyle("SharedLayerStyle", style.id, style.name, style.style)
       })
 
+
+      // Process all layers in all pages
       document.pages.forEach(function(page) { page.layers.forEach(function(item) { 
         processLayer(item) 
         }) });
@@ -107,7 +167,7 @@ export default function () {
       function processLayer(layer){
           if(!opened && !isCanceled){
             isCanceled = true;
-            UI.message("Canceled... \r\nFound "+Object.keys(globalColors).length + " unique colors in "+numberOfComponents+" components from "+numberOfLayersReviewed+" layers")
+            UI.message("Canceled... \r\nFound "+Object.keys(itemGroups).length + " unique colors in "+numberOfComponents+" components from "+numberOfLayersReviewed+" layers")
             return;
           }
           stackCount += 1
@@ -115,11 +175,11 @@ export default function () {
           consumeStyle("LayerStyle", layer.id, layer.name, layer.style)
 
           if(changed){
-            var content = JSON.stringify(globalColors)
+            var content = JSON.stringify(itemGroups)
             webContents
               .executeJavaScript(`setContent(${content})`)
               .catch(console.error)
-            UI.message("Anylizing... \r\nFound "+Object.keys(globalColors).length + " unique colors in "+numberOfComponents+" components from "+numberOfLayersReviewed+" layers")
+            UI.message("Anylizing... \r\nFound "+Object.keys(itemGroups).length + " unique colors in "+numberOfComponents+" components from "+numberOfLayersReviewed+" layers")
             changed = false
           }
           
@@ -130,10 +190,9 @@ export default function () {
             stackCount -= 1
 
             if(stackCount == 0){
-              UI.alert("Done","Done. \r\nFound "+Object.keys(globalColors).length + " unique colors in "+numberOfComponents+" components from "+numberOfLayersReviewed+" layers")
+              UI.alert("Done","Done. \r\nFound "+Object.keys(itemGroups).length + " unique colors in "+numberOfComponents+" components from "+numberOfLayersReviewed+" layers")
             }
           }, 1)
-          
         }
         
         //if(layer.type == 'ShapePath'){

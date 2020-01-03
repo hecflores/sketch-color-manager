@@ -27,11 +27,37 @@ window.setContent = (content) => {
     }
     return html
   }
-  
-  
+  function generateTextHtml(items){
+    var html = "";
+    for(var item in items){
+      html+= "<div class='item-found'>"+
+             "    <div class='item-found-header'>"+
+             "         <div class='item-details'>"+item+"</div>"+
+             "    </div>"+
+             "    <div class='item-found-body' >" + 
+             "         <div class='item-found-body-header'>Found "+items[item].styles.length+" items</div>"
+             items[item].styles.forEach(function(style){
+          html +="     <div class='item-found-body-item'>"+style.displayName+"</div>"
+      });
+      html+="</div> </div>"
+    }
+    return html
+  }
 
-  document.getElementById('fills').innerHTML = "<div>"+generateColorHtml(content.fills)+"</div>"
-  document.getElementById('borders').innerHTML = "<div>"+generateColorHtml(content.borderColors)+"</div>"
-  document.getElementById('fontSizes').innerHTML = "<div>"+generateColorHtml(content.fontSizes)+"</div>"
-  document.getElementById('borderThicknesses').innerHTML = "<div>"+generateColorHtml(content.borderThickness)+"</div>"
+  var finalHtml = "";
+  for(var contentKey in content){
+    finalHtml += "<div class='style-find'>"+
+                 "   <div class='style-header'>"+content[contentKey].displayName+"</div>"+
+                 "   <div class='style-body'>";
+    if(content[contentKey].type == "color"){
+      finalHtml += generateColorHtml(content[contentKey].results)
+    }
+    else if(content[contentKey].type == "text"){
+      finalHtml += generateTextHtml(content[contentKey].results)
+    }
+    else{
+      throw "Unknown content type "+content[contentKey].type
+    }
+  }
+  document.getElementById('findings').innerHTML = "<div>"+finalHtml+"</div>"
 }
