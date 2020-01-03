@@ -2,7 +2,7 @@
 
 html {
   box-sizing: border-box;
-  background: transparent;
+  background: white;
 
   /* Prevent the page to be scrollable */
   overflow: scroll;
@@ -81,4 +81,10 @@ input, textarea {
 .item-found[render-type='color'] .item-details{
   color:transparent;
   font-size:1px;
+}
+.progress-bar{
+  height:30px;
+  background:green;
+  text-align:left;
+  overflow-x:visible;
 }

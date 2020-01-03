@@ -3,9 +3,10 @@ document.addEventListener('contextmenu', (e) => {
   e.preventDefault()
 })
 
-$(function(){
-  window.postMessage('nativeLog', 'Called from the webview')
-})
+// call the plugin from the webview	$(function(){
+  document.getElementById('button').addEventListener('click', () => {	
+    window.postMessage('nativeLog', 'Called from the webview')	  
+  })
 
 
 // call the wevbiew from the plugin
@@ -29,13 +30,21 @@ window.setContent = (content) => {
   }
 
   var finalHtml = "";
-  for(var contentKey in content){
+  for(var contentKey in content.itemGroups){
     finalHtml += "<div class='style-find'>"+
-                 "   <div class='style-header'>"+content[contentKey].displayName+"</div>"+
+                 "   <div class='style-header'>"+content.itemGroups[contentKey].displayName+"</div>"+
                  "   <div class='style-body'>";
-    finalHtml += generateHtml(content[contentKey].type, content[contentKey].results)
+    finalHtml += generateHtml(content.itemGroups[contentKey].type, content.itemGroups[contentKey].results)
     finalHtml+="</div>"
     finalHtml+="</div>"
   }
   document.getElementById('findings').innerHTML = finalHtml
+
+  var finalStatusHtml =""
+  finalStatusHtml += "<div class='progress-circle' hide='"+content.status.isComplete+"'></div>"
+  finalStatusHtml += "<div style='width:"+(content.status.pagesPercentDone * 100)+"vw' class='progress-bar'>Pages Reviewed</div>"
+  finalStatusHtml += "<div style='width:"+(content.status.layersPercentDone * 100)+"vw' class='progress-bar'>Layers Reviewed</div>"
+  finalStatusHtml += "<div style='width:"+(content.status.artboardsPercentDone * 100)+"vw' class='progress-bar'>Artboards Reviewed</div>"
+  finalStatusHtml += "<div style='width:"+(content.status.finalPercentDone * 100)+"vw' class='progress-bar'>Complete</div>"
+  document.getElementById('status').innerHTML = finalStatusHtml
 }

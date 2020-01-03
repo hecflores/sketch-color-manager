@@ -1,7 +1,6 @@
 import BrowserWindow from 'sketch-module-web-view'
 import { getWebview } from 'sketch-module-web-view/remote'
 import UI from 'sketch/ui'
-import sketch from 'sketch'
 const webviewIdentifier = 'sketch-color-manager.webview'
 var fiber = require('sketch/async').createFiber()
 
@@ -33,12 +32,22 @@ export default function () {
   const webContents = browserWindow.webContents
   
   var isCanceled = false;
+
+  var totalPages = 0
+  var reviewedPages = 0
+
+  var totalLayers = 0
+  var reviewedLayers = 0
+
+  var totalartboards = 0
+  var reviewedartboards = 0
+  
   browserWindow.on("closed", () => {
     opened = false;
   });
   // print a message when the page loads
   webContents.on('did-finish-load', () => {
-    UI.message('UI loaded 10!')
+    UI.message('UI loaded 13!')
     loadContent =function(){
       
       var styleConsumers = [
@@ -58,7 +67,7 @@ export default function () {
           type:"color",
           displayName: "Border Colors",
           consume: (consumer, type, id, name, style) => {
-            var fills = style.fills ? style.fills : []
+            var fills = style.borders ? style.borders : []
             fills.filter(fill => fill.fillType === "Color").forEach((fill, index) => {
               addItem(consumer.name, fill.color, consumer.displayName, type, name, id, index)
             })
@@ -69,9 +78,9 @@ export default function () {
           type:"text",
           displayName: "Border Thickness",
           consume: (consumer, type, id, name, style) => {
-            var fills = style.fills ? style.fills : []
-            fills.filter(fill => fill.fillType === "Color").forEach((fill, index) => {
-              addItem(consumer.name , fill.color, consumer.displayName, type, name, id, index)
+            var fills = style.borders ? style.borders : []
+            fills.forEach((fill, index) => {
+              addItem(consumer.name , fill.thickness, consumer.displayName, type, name, id, index)
             })
           }
         },
@@ -97,6 +106,12 @@ export default function () {
         }
       ]
 
+      totalPages = 0
+      reviewedPages = 0
+      totalLayers = 0
+      reviewedLayers = 0
+      totalartboards = 0
+      reviewedartboards = 0
 
       var sketch = require('sketch');
       var document = sketch.getSelectedDocument()
@@ -115,6 +130,7 @@ export default function () {
       })
 
       function addItem(itemGroup, itemId, typeDisplayName, type, name, id, subId){
+        changed = true
 
         // Add new item group
         if(typeof itemGroups[itemGroup] == "undefined"){
@@ -123,8 +139,7 @@ export default function () {
 
         // Add new item
         if(typeof itemGroups[itemGroup].results[itemId] == "undefined"){
-          numberOfComponents += 1
-          changed = true
+          
           itemGroups[itemGroup].results[itemId] = {styles:[]};
         }
 
@@ -146,105 +161,164 @@ export default function () {
         
       }
 
-      // Add all Shared Layer Styles
-      document.sharedLayerStyles.forEach(function(style){
-        consumeStyle("SharedLayerStyle", style.id, style.name, style.style)
-      })
-
-      // Add all Shared Text Styles
-      document.sharedTextStyles.forEach(function(style){
-        consumeStyle("SharedLayerStyle", style.id, style.name, style.style)
-      })
+      
 
 
-      // Process all layers in all pages
-      document.pages.forEach(function(page) { page.layers.forEach(function(item) { 
-        processLayer(item) 
-        }) });
-
-      var stackCount = 0;
-      var numberOfLayersReviewed = 0;
-      var numberOfComponents = 0
       var changed = false
-      function processLayer(layer){
-          if(!opened && !isCanceled){
-            isCanceled = true;
-            UI.message("Canceled... \r\nFound "+Object.keys(itemGroups).length + " unique colors in "+numberOfComponents+" components from "+numberOfLayersReviewed+" layers")
+      var isComplete = false
+      setTimeout(function(){
+        // var fiber = require('sketch/async').createFiber()
+        try{
+        isComplete = false
+        // All pages
+        var sketch=document 
+
+        // Add all Shared Layer Styles
+        sketch.sharedLayerStyles.forEach(function(style){
+          consumeStyle("SharedLayerStyle", style.id, style.name, style.style)
+        })
+
+        // Add all Shared Text Styles
+        sketch.sharedTextStyles.forEach(function(style){
+          consumeStyle("SharedLayerStyle", style.id, style.name, style.style)
+        })
+        
+        totalPages += sketch.pages.length
+        sketch.pages.forEach(page => {
+          var layers = page.layers.filter(layer => layer.type != "Artboard" )
+          var artboards = page.layers.filter(layer => layer.type == "Artboard" )
+          totalLayers += layers.length
+          totalartboards += artboards.length
+
+          if(isCanceled){
+            reviewedPages += 1
+            return;
           }
 
+          // All artboards
+          artboards.forEach(artboard => {
+
+            // All layers inside artboard
+            artboard.layers.forEach(layer => {
+              if(isCanceled){
+                reviewedartboards += 1
+                return;
+              }
+
+              processLayer(layer);
+
+            })
+          })
+
+          // All layers inside page
+          layers.forEach(layer => {
+            if(isCanceled){
+              reviewedLayers += 1
+              return;
+            }
+
+            processLayer(layer);
+            
+
+            
+            
+          })
+          reviewedPages += 1
+        })
+        if(isCanceled){
+          UI.message("Canceled...")
+        }
+        else{
+          UI.alert("Done","Done")
+        }
+        isComplete = true
+        fiber.cleanup();  
+        }
+        catch(e){
+          console.error(e)
+          fiber.cleanup();
+        }
+      }, 1)
+
+      // Show Results
+      function showResults(){
+        var pagesPercentDone = totalPages == 0 ? 1 : reviewedPages / totalPages
+        var layersPercentDone = totalLayers == 0 ? 1 : reviewedLayers / totalLayers
+        var artboardsPercentDone = totalartboards == 0 ? 1 : reviewedartboards / totalartboards
+        var finalPercentDone = pagesPercentDone * layersPercentDone * artboardsPercentDone
+
+        if(changed){
+          var content = JSON.stringify({
+            itemGroups:itemGroups,
+            status:{
+              pagesPercentDone: pagesPercentDone,
+              layersPercentDone: layersPercentDone,
+              artboardsPercentDone: artboardsPercentDone,
+              finalPercentDone: finalPercentDone,
+              isCanceled: isCanceled,
+              isComplete:isComplete
+            }
+          })
+          webContents
+            .executeJavaScript(`setContent(${content})`)
+            .catch(console.error)
+          changed = false
+        }
+      }
+
+
+      function processLayer(layer){
+          // console.log("Processing Layer '"+layer+"'")
+          // If Browser closed and we havent canceled, cancel
+          if(!opened && !isCanceled){
+            isCanceled = true;
+          }
+
+          // Handle cancelation
           if(isCanceled){
             return;
           }
 
-          stackCount += 1
-          numberOfLayersReviewed += 1
+          // Consume layer
           consumeStyle("LayerStyle", layer.id, layer.name, layer.style)
 
-          if(changed){
-            var content = JSON.stringify(itemGroups)
-            webContents
-              .executeJavaScript(`setContent(${content})`)
-              .catch(console.error)
-            UI.message("Anylizing... \r\nFound "+Object.keys(itemGroups).length + " unique colors in "+numberOfComponents+" components from "+numberOfLayersReviewed+" layers")
-            changed = false
+          if(layer.type == "Artboard"){
+            reviewedartboards +=1
           }
-          
-          setTimeout(function(){
+          else{
+            reviewedLayers += 1
+          }
+
+          showResults()
+
+          // Consume child layers
+          // setTimeout(function() {
+            //var fiber = require('sketch/async').createFiber()
             if(layer.layers && layer.type != "SymbolInstance"){
+              var layers = layer.layers.filter(layer => layer.type != "Artboard" )
+              var artboards = layer.layers.filter(layer => layer.type == "Artboard" )
+              totalLayers += layers.length
+              totalartboards += artboards.length
+
               layer.layers.forEach(processLayer);
             }
-            stackCount -= 1
-
-            if(stackCount == 0 ){
-              if(!isCanceled){
-                UI.alert("Done","Done. \r\nFound "+Object.keys(itemGroups).length + " unique colors in "+numberOfComponents+" components from "+numberOfLayersReviewed+" layers")
-              }
-              fiber.cleanup();  
-            }
-            
-          }, 1)
-        }
-        
-        //if(layer.type == 'ShapePath'){
+            //fiber.cleanup()
+          // }, 1)
           
-          // colorStyles.push({
-          //   targetType: layer.type,
-          //   displayName: layer.name,
-          //   name: layer.name,
-          //   id: layer.id,
-          //   styleTypes:[
-          //     {
-          //       styleType:"fill",
-          //       id:"fill",
-          //       values:layer.fills ? layer.fills.map(function(fill, index){
-          //         return {
-          //           id: index,
-          //           value: fill.color,
-          //           type:fill.fillType
-          //         }
-          //       }).filter(function(fill){
-          //         return fill.type == "Color"
-          //       }) : []
-          //     }
-
-          //   ]
-          // })
-        //}
+        }
     } 
   })
 
   // add a handler for a call from web content's javascript
   webContents.on('nativeLog', s => {
     UI.message(s)
-    setTimeout(function(){
-      try{
-        loadContent()
-      }
-      catch(e){
-        console.error(e)
-      }
-    }, 1)
-    
+    try{
+      loadContent()
+    }
+    catch(e){
+      console.error(e)
+      fiber.cleanup();  
+    }
   })
 
   browserWindow.loadURL(require('../resources/webview.html'))
