@@ -27,13 +27,22 @@ input, textarea {
   user-select: auto;
 }
 
-
+.color-found{
+  width:100vw;
+  display:block;
+}
 .color-icon{
   display:inline-block;
-  width:30px;
-  height:30px;
-  border-radius: 30px;
+  width:10px;
+  height:10px;
+  border-radius: 10px;
 }
 .color-found-header{
   float:left;
+}
+.color-found-body{
+  font-size:10px;
+}
+.color-found-body > .color-found-body-item{
+  display:none;
 }

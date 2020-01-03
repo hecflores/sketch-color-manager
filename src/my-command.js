@@ -7,8 +7,8 @@ const webviewIdentifier = 'sketch-color-manager.webview'
 export default function () {
   const options = {
     identifier: webviewIdentifier,
-    width: 240,
-    height: 180,
+    width: 500,
+    height: 300,
     show: false
   }
 
@@ -28,30 +28,75 @@ export default function () {
 
   // print a message when the page loads
   webContents.on('did-finish-load', () => {
-    UI.message('UI loaded 6!')
+    UI.message('UI loaded 8!')
     loadContent =function(){
       var sketch = require('sketch');
 
       var colorStyles = [];
-      var colors = {}
-      sketch.getSelectedDocument().pages.forEach(function(page) { page.layers.forEach(processLayer) });
+      var globalColors = {}
+      var document = sketch.getSelectedDocument()
 
-      var numberOfComponents = 0
-      function processLayer(layer){
-        console.log(JSON.stringify(layer))
-        if(layer.fills){
-          if(layer.fills.length > 0){
-            UI.alert("Found something",JSON.stringify(layer.fills))
-            numberOfComponents = 1000
-            return
-            if(layer.fills[0].fillType == "Color"){
-              if(typeof colors[layer.fills[0].color] == "undefined"){
+      function ConsumeStyle(type, id, name, style){
+        if(style.fills){
+          if(style.fills.length > 0){
+            if(style.fills[0].fillType == "Color"){
+              if(typeof globalColors[style.fills[0].color] == "undefined"){
                 numberOfComponents += 1
-                colors[layer.fills[0].color] = {styles:[]};
+                changed = true
+                globalColors[style.fills[0].color] = {styles:[]};
               }
+              globalColors[style.fills[0].color].styles.push({
+                displayName: type +" | "+name+" | fill",
+                type:type,
+                id:id
+              })
             }
           }
         }
+      }
+
+      document.sharedLayerStyles.forEach(function(style){
+        ConsumeStyle("SharedLayerStyle", style.id, style.name, style.style)
+      })
+      document.sharedTextStyles.forEach(function(style){
+        ConsumeStyle("SharedLayerStyle", style.id, style.name, style.style)
+      })
+
+      document.pages.forEach(function(page) { page.layers.forEach(function(item) { 
+        processLayer(item) 
+        }) });
+
+      var stackCount = 0;
+      var numberOfLayersReviewed = 0;
+      var numberOfComponents = 0
+      var changed = false
+      function processLayer(layer){
+          stackCount += 1
+          numberOfLayersReviewed += 1
+          ConsumeStyle("LayerStyle", layer.id, layer.name, layer.style)
+
+          if(changed){
+            var content = JSON.stringify(globalColors)
+            webContents
+              .executeJavaScript(`setContent(${content})`)
+              .catch(console.error)
+            UI.message("Anylizing... \r\nFound "+Object.keys(globalColors).length + " unique colors in "+numberOfComponents+" components from "+numberOfLayersReviewed+" layers")
+            changed = false
+          }
+          
+          setTimeout(function(){
+            if(layer.layers && layer.type != "SymbolInstance"){
+              layer.layers.forEach(processLayer);
+            }
+            stackCount -= 1
+
+            if(stackCount == 0){
+              UI.alert("Done","Done. \r\nFound "+Object.keys(globalColors).length + " unique colors in "+numberOfComponents+" components from "+numberOfLayersReviewed+" layers")
+            }
+          }, 1)
+          
+        }
+        
         //if(layer.type == 'ShapePath'){
           
           // colorStyles.push({
@@ -77,25 +122,6 @@ export default function () {
           //   ]
           // })
         //}
-        if(layer.layers && numberOfComponents < 2){
-          layer.layers.forEach(processLayer);
-        }
-      }
-
-      colorStyles.forEach(function(colorStyle){
-        colorStyle.styleTypes.forEach(function(styleType){
-          styleType.values.forEach(function(value, index){
-            if(typeof colors[value.value] === "undefined"){
-              colors[value.value] = {
-                color: value.value,
-                styles:[]
-              }
-            }
-          })
-        })
-      })
-      UI.message("Found "+Object.keys(colors).length + " unique colors in "+numberOfComponents+" components")
-      return colors
     } 
   })
 
@@ -104,11 +130,7 @@ export default function () {
     UI.message(s)
     setTimeout(function(){
       try{
-        var content = loadContent()
-        content = JSON.stringify(content)
-        webContents
-          .executeJavaScript(`setContent(${content})`)
-          .catch(console.error)
+        loadContent()
       }
       catch(e){
         console.error(e)

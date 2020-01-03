@@ -15,13 +15,14 @@ window.setContent = (content) => {
   for(var color in content){
     html+= "<div class='color-found'>"+
            "    <div class='color-found-header'>"+
-           "         <div class='color-icon' style='background:"+color+"'></div>"+
+           "         <div class='color-icon' style='background:"+color+"'/>"+
            "    </div>"+
-           "    <div class='color-found-body'>"
+           "    <div class='color-found-body' >" + 
+           "         <div class='color-found-body-header'>Found "+content[color].styles.length+" items</div>"
     content[color].styles.forEach(function(style){
-        htm+="     <div class='color-found-body-item'>"+style.displayName+"</div>"
+        html +="     <div class='color-found-body-item'>"+style.displayName+"</div>"
     });
-    html+="</div></div>"
+    html+="</div> </div>"
   }
   
 
