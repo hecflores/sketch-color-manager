@@ -130,7 +130,7 @@ export default function () {
       })
 
       function addItem(itemGroup, itemId, typeDisplayName, type, name, id, subId){
-        changed = true
+        
 
         // Add new item group
         if(typeof itemGroups[itemGroup] == "undefined"){
@@ -139,7 +139,7 @@ export default function () {
 
         // Add new item
         if(typeof itemGroups[itemGroup].results[itemId] == "undefined"){
-          
+          changed = true
           itemGroups[itemGroup].results[itemId] = {styles:[]};
         }
 
@@ -184,55 +184,21 @@ export default function () {
         })
         
         totalPages += sketch.pages.length
-        sketch.pages.forEach(page => {
+        // Process all layers in all pages
+        document.pages.forEach(function(page) { 
           var layers = page.layers.filter(layer => layer.type != "Artboard" )
           var artboards = page.layers.filter(layer => layer.type == "Artboard" )
           totalLayers += layers.length
           totalartboards += artboards.length
 
-          if(isCanceled){
-            reviewedPages += 1
-            return;
-          }
-
-          // All artboards
-          artboards.forEach(artboard => {
-
-            // All layers inside artboard
-            artboard.layers.forEach(layer => {
-              if(isCanceled){
-                reviewedartboards += 1
-                return;
-              }
-
-              processLayer(layer);
-
-            })
-          })
-
-          // All layers inside page
-          layers.forEach(layer => {
-            if(isCanceled){
-              reviewedLayers += 1
-              return;
-            }
-
-            processLayer(layer);
-            
-
-            
-            
-          })
+          page.layers.forEach(function(item) { 
+            processLayer(item)   
+          }) 
           reviewedPages += 1
-        })
-        if(isCanceled){
-          UI.message("Canceled...")
-        }
-        else{
-          UI.alert("Done","Done")
-        }
-        isComplete = true
-        fiber.cleanup();  
+        });
+
+        
+        
         }
         catch(e){
           console.error(e)
@@ -266,8 +232,9 @@ export default function () {
         }
       }
 
-
+      var stackCount = 0;
       function processLayer(layer){
+        stackCount += 1
           // console.log("Processing Layer '"+layer+"'")
           // If Browser closed and we havent canceled, cancel
           if(!opened && !isCanceled){
@@ -292,7 +259,7 @@ export default function () {
           showResults()
 
           // Consume child layers
-          // setTimeout(function() {
+          setTimeout(function() {
             //var fiber = require('sketch/async').createFiber()
             if(layer.layers && layer.type != "SymbolInstance"){
               var layers = layer.layers.filter(layer => layer.type != "Artboard" )
@@ -302,8 +269,20 @@ export default function () {
 
               layer.layers.forEach(processLayer);
             }
+
+            stackCount -= 1
+            if(stackCount == 0){
+              if(isCanceled){
+                UI.message("Canceled...")
+              }
+              else{
+                UI.alert("Done","Done")
+              }
+              isComplete = true
+              fiber.cleanup();  
+            }
             //fiber.cleanup()
-          // }, 1)
+          }, 1)
           
         }
     } 
@@ -312,13 +291,15 @@ export default function () {
   // add a handler for a call from web content's javascript
   webContents.on('nativeLog', s => {
     UI.message(s)
-    try{
-      loadContent()
-    }
-    catch(e){
-      console.error(e)
-      fiber.cleanup();  
-    }
+    setTimeout(() => {
+      try{
+        loadContent()
+      }
+      catch(e){
+        console.error(e) 
+      }
+    }, 1)
+    
   })
 
   browserWindow.loadURL(require('../resources/webview.html'))

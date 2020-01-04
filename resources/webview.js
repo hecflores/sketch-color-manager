@@ -21,9 +21,9 @@ window.setContent = (content) => {
              "    </div>"+
              "    <div class='item-found-body' >" + 
              "         <div class='item-found-body-header'>Found "+items[item].styles.length+" items</div>"
-             items[item].styles.forEach(function(style){
-          html +="     <div class='item-found-body-item' item-type='"+style.type+"' item-id='"+style.id+"' item-subId='"+style.subId+"'>"+style.displayName+"</div>"
-      });
+      //        items[item].styles.forEach(function(style){
+      //     html +="     <div class='item-found-body-item' item-type='"+style.type+"' item-id='"+style.id+"' item-subId='"+style.subId+"'>"+style.displayName+"</div>"
+      // });
       html+="</div> </div>"
     }
     return html
@@ -42,9 +42,9 @@ window.setContent = (content) => {
 
   var finalStatusHtml =""
   finalStatusHtml += "<div class='progress-circle' hide='"+content.status.isComplete+"'></div>"
-  finalStatusHtml += "<div style='width:"+(content.status.pagesPercentDone * 100)+"vw' class='progress-bar'>Pages Reviewed</div>"
-  finalStatusHtml += "<div style='width:"+(content.status.layersPercentDone * 100)+"vw' class='progress-bar'>Layers Reviewed</div>"
-  finalStatusHtml += "<div style='width:"+(content.status.artboardsPercentDone * 100)+"vw' class='progress-bar'>Artboards Reviewed</div>"
-  finalStatusHtml += "<div style='width:"+(content.status.finalPercentDone * 100)+"vw' class='progress-bar'>Complete</div>"
+  finalStatusHtml += "<div class='progress-bar-holder'><div style='width:"+(content.status.pagesPercentDone * 100)+"vw' class='progress-bar'>"+Math.floor(content.status.pagesPercentDone * 100)+"% Pages Reviewed</div></div>"
+  finalStatusHtml += "<div class='progress-bar-holder'><div style='width:"+(content.status.layersPercentDone * 100)+"vw' class='progress-bar'>"+Math.floor(content.status.layersPercentDone * 100)+"% Layers Reviewed</div></div>"
+  finalStatusHtml += "<div class='progress-bar-holder'><div style='width:"+(content.status.artboardsPercentDone * 100)+"vw' class='progress-bar'>"+Math.floor(content.status.artboardsPercentDone * 100)+"% Artboards Reviewed</div></div>"
+  finalStatusHtml += "<div class='progress-bar-holder'><div style='width:"+(content.status.finalPercentDone * 100)+"vw' class='progress-bar'>"+Math.floor(content.status.finalPercentDone * 100)+"% Complete</div></div>"
   document.getElementById('status').innerHTML = finalStatusHtml
 }
