@@ -29,4 +29,9 @@ module.exports = function (config, entry) {
       },
     ]
   })
+  config.module.rules.push({
+    test: /\.tsx?$/,
+    use: 'ts-loader',
+    exclude: /node_modules/,
+  })
 }

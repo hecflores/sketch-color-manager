@@ -20,8 +20,9 @@
     "postinstall": "npm run build && skpm-link"
   },
   "devDependencies": {
-    "@skpm/builder": "^0.7.4",
+    "@skpm/builder": "^0.7.5",
     "@skpm/extract-loader": "^2.0.2",
+    "@types/node": "^13.1.4",
     "css-loader": "^3.2.0",
     "html-loader": "^0.5.5"
   },
