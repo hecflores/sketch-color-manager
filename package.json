@@ -25,12 +25,24 @@
     "@skpm/extract-loader": "^2.0.2",
     "@types/node": "^13.1.4",
     "css-loader": "^3.2.0",
-    "html-loader": "^0.5.5"
+    "html-loader": "^0.5.5",
+    "@typescript-eslint/eslint-plugin": "^2.4.0",
+    "@typescript-eslint/parser": "^2.4.0",
+    "eslint": "^6.5.1",
+    "terser-webpack-plugin": "^2.2.2",
+    "ts-loader": "^6.2.1",
+    "typescript": "^3.1.6"
   },
   "resources": [
     "resources/**/*.js"
   ],
+  "browser": {
+    "fs": false,
+    "path": false,
+    "os": false
+  },
   "dependencies": {
+    "fs": "0.0.1-security",
     "sketch-module-web-view": "^3.1.4"
   }
 }

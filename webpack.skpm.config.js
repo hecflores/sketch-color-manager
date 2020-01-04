@@ -2,6 +2,22 @@ module.exports = function (config, entry) {
   config.node = entry.isPluginCommand ? false : {
     setImmediate: false
   };
+
+  config.module.rules.push({
+    test: /\.tsx?$/,
+    exclude: /node_modules/,
+    loader: 'ts-loader'
+  });
+  
+  if (!config.resolve) {
+    config.resolve = {
+      extensions: []
+    };
+  }
+  
+  config.resolve.extensions = [...config.resolve.extensions, ".ts", ".tsx"];
+  
+
   config.module.rules.push({
     test: /\.(html)$/,
     use: [{
@@ -29,9 +45,6 @@ module.exports = function (config, entry) {
       },
     ]
   })
-  config.module.rules.push({
-    test: /\.tsx?$/,
-    use: 'ts-loader',
-    exclude: /node_modules/,
-  })
+
+  
 }

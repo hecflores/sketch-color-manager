@@ -1,6 +1,7 @@
 import BrowserWindow from 'sketch-module-web-view'
 import { getWebview } from 'sketch-module-web-view/remote'
 import UI from 'sketch/ui'
+import "./core"
 const webviewIdentifier = 'sketch-color-manager.webview'
 var fiber = require('sketch/async').createFiber()
 
