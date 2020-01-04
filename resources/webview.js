@@ -20,7 +20,7 @@ window.setContent = (content) => {
              "         <div class='item-details' itemValue='"+item+"' style='background:"+item+"'>"+item+"</div>"+
              "    </div>"+
              "    <div class='item-found-body' >" + 
-             "         <div class='item-found-body-header'>Found "+items[item].styles.length+" items</div>"
+             "         <div class='item-found-body-header'>Found "+items[item].styleCount+" items</div>"
       //        items[item].styles.forEach(function(style){
       //     html +="     <div class='item-found-body-item' item-type='"+style.type+"' item-id='"+style.id+"' item-subId='"+style.subId+"'>"+style.displayName+"</div>"
       // });

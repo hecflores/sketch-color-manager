@@ -116,12 +116,18 @@ export default function () {
       var sketch = require('sketch');
       var document = sketch.getSelectedDocument()
       var itemGroups = {}
+      var displayItemGroups = {}
 
       // Add Consumers as item groups
       styleConsumers.forEach(consumer => {
         // Add new item group
         if(typeof itemGroups[consumer.name] == "undefined"){
           itemGroups[consumer.name] = {
+            results:{},
+            displayName: consumer.displayName,
+            type:consumer.type
+          }
+          displayItemGroups[consumer.name]= {
             results:{},
             displayName: consumer.displayName,
             type:consumer.type
@@ -141,6 +147,7 @@ export default function () {
         if(typeof itemGroups[itemGroup].results[itemId] == "undefined"){
           changed = true
           itemGroups[itemGroup].results[itemId] = {styles:[]};
+          displayItemGroups[itemGroup].results[itemId] = {styleCount:0};
         }
 
         // Add new item detail
@@ -150,6 +157,7 @@ export default function () {
           id:id,
           subId: subId
         })
+        displayItemGroups[itemGroup].results[itemId].styleCount += 1
       }
 
       
@@ -215,7 +223,7 @@ export default function () {
 
         if(changed){
           var content = JSON.stringify({
-            itemGroups:itemGroups,
+            itemGroups:displayItemGroups,
             status:{
               pagesPercentDone: pagesPercentDone,
               layersPercentDone: layersPercentDone,
