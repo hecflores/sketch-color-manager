@@ -1,6 +1,7 @@
 {
   "name": "sketch-color-manager",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "Sketch Plugin to manage all rogue colors in the sketch, along with other styling properties",
   "engines": {
     "sketch": ">=3.0"
   },
