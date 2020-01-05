@@ -1,3 +1,9 @@
+
+declare module 'sketch-module-web-view';
+declare module 'sketch-module-web-view/remote';
+declare module 'sketch/ui';
+
+
 declare namespace Sketch {
     interface Context {
       document: MSDocument;

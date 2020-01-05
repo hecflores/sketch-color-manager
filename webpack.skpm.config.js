@@ -2,7 +2,9 @@ module.exports = function (config, entry) {
   config.node = entry.isPluginCommand ? false : {
     setImmediate: false
   };
-
+  config.node = {
+    fs: 'empty'
+  };
   config.module.rules.push({
     test: /\.tsx?$/,
     exclude: /node_modules/,

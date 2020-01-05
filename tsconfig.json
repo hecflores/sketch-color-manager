@@ -14,5 +14,9 @@
         "node_modules/@types",
         "node_modules/@types/node"
       ],
+      
+      // Required as part of typescript-ioc: https://www.npmjs.com/package/typescript-ioc
+      "experimentalDecorators": true,
+      "emitDecoratorMetadata": true
     }
   }
