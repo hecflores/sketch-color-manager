@@ -1,9 +1,10 @@
 
 import "./setup"
 import Container from "./setup"
+import * as sketch from "./sketch"
 
 export default function onRun(context) {
-    Container.bind(Sketch.Context).provider({
+    Container.bind(sketch).provider({
         get: () => {return context}
     })
 
