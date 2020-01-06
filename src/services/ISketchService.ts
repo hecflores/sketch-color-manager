@@ -1,6 +1,3 @@
-declare namespace Services {
-
-    export abstract class ISketchService{
-        CreateWebBrowserWindow():void
-    }
+export abstract class ISketchService{
+    abstract CreateWebBrowserWindow():void
 }

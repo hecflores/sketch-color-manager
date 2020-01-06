@@ -1,19 +1,19 @@
 
 import "./setup"
 import Container from "./setup"
-import * as sketch from "./sketch"
-
-export default function onRun(context) {
-    Container.bind(sketch).provider({
+import {SketchContext} from "./sketch"
+import {ISketchController} from "./controllers/ISketchController"
+export default function (context) {
+    Container.bind(SketchContext).provider({
         get: () => {return context}
     })
 
-    Container.get(Controllers.ISketchController).onRun()
+    Container.get(ISketchController).OnRun()
 }
 export function onShutdown(context) {
-    Container.bind(Sketch.Context).provider({
+    Container.bind(SketchContext).provider({
         get: () => {return context}
     })
 
-    Container.get(Controllers.ISketchController).onShutdown()
+    Container.get(ISketchController).OnShutdown()
 }

@@ -1,9 +1,14 @@
+import { ISketchController } from "./ISketchController"
+import { ISketchService } from "../services/ISketchService"
+import { IProfileService } from "../services/IProfileService"
+import {Inject} from "typescript-ioc";
 
-export class SketchController implements Controllers.ISketchController {
+export class SketchController implements ISketchController {
     
-    private _sketchService: Services.ISketchService
-    private _profileService: Services.IProfileService
-    constructor(profileService: Services.IProfileService, sketchService: Services.ISketchService){
+    private _sketchService: ISketchService
+    private _profileService: IProfileService
+    constructor(@Inject profileService: IProfileService, 
+                @Inject sketchService: ISketchService){
         this._sketchService = sketchService
         this._profileService = profileService
     }

@@ -1,9 +1,8 @@
+var webpack = require("webpack");
+const path = require("path")
 module.exports = function (config, entry) {
   config.node = entry.isPluginCommand ? false : {
     setImmediate: false
-  };
-  config.node = {
-    fs: 'empty'
   };
   config.module.rules.push({
     test: /\.tsx?$/,
@@ -13,11 +12,13 @@ module.exports = function (config, entry) {
   
   if (!config.resolve) {
     config.resolve = {
-      extensions: []
+      extensions: [],
+      modules:[]
     };
   }
   
   config.resolve.extensions = [...config.resolve.extensions, ".ts", ".tsx"];
+  config.resolve.modules = [...config.resolve.modules, path.resolve(__dirname, 'src/mymodules')];
   
 
   config.module.rules.push({
@@ -48,5 +49,8 @@ module.exports = function (config, entry) {
     ]
   })
 
-  
+  config.plugins = [...config.plugins, new webpack.DefinePlugin({
+    '__dirname': "'"+__dirname+"'",
+    "require('fs')":'require("@skpm/fs")'
+  })]
 }

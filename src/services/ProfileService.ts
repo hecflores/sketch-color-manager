@@ -1,9 +1,14 @@
-import * as fs from "fs";
+
 import { ProfileModel } from "../models/ProfileModel";
-export class ProfileService implements Services.IProfileService {
+import { IProfileService } from "./IProfileService";
+import { SketchContext } from "../sketch";
+import { Inject } from "typescript-ioc";
+const fs = require("fs")
+
+export class ProfileService implements IProfileService {
     
     model: ProfileModel = new ProfileModel
-    context: Sketch.Context;
+    context: SketchContext;
 
     /**
      * 
@@ -11,8 +16,9 @@ export class ProfileService implements Services.IProfileService {
      * @param {(ProfileModel | undefined)} [initialProfile=undefined]
      * @memberof Profile
      */
-    constructor(context: Sketch.Context){
+    constructor(@Inject context: SketchContext){
         this.context = context
+        
     }
     
 
@@ -23,6 +29,10 @@ export class ProfileService implements Services.IProfileService {
      * @memberof Profile
      */
     getProfileFilePath(): string{ 
+        if(!this.context.document){
+            throw new Error("No document found in context")
+        }
+        console.log(this.context.document)
         return this.context.document.path + "/"+ "color-manager-profile.json"
     }
 
@@ -34,7 +44,8 @@ export class ProfileService implements Services.IProfileService {
      * @memberof Profile
      */
     loadProfile(callback: (profile: ProfileModel) => void){
-        fs.readFile(this.getProfileFilePath(), (err, data) => {
+        console.log(fs);
+        fs.readFile(this.getProfileFilePath(), (err:any, data:any) => {
             if(err){
                 throw err.message
             }
@@ -52,7 +63,8 @@ export class ProfileService implements Services.IProfileService {
      * @memberof Profile
      */
     saveProfile(callback: () => void){
-        fs.writeFile(this.getProfileFilePath(), JSON.stringify(this.model), (err) => {
+        console.log(fs);
+        fs.writeFile(this.getProfileFilePath(), JSON.stringify(this.model), (err:any) => {
             if(err){
                 throw err.message
             }
